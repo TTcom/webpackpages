@@ -1,5 +1,6 @@
 const path = require('path');
-var glob = require('glob')
+var glob = require('glob');
+const webpack = require("webpack");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const cleanWebpackPlugin = require("clean-webpack-plugin");  //清除dist
 const ExtractTextPlugin = require("extract-text-webpack-plugin");   //抽离css
@@ -30,6 +31,9 @@ var webpackConfig = {
 //
 //},
 entry: entries,
+
+devtool: 'inline-source-map', //找错
+
 output: {
     path: path.join(__dirname, 'dist'), // 输出目录的配置，模板、样式、脚本、图片等资源的路径配置都相对于它
 //    publicPath: '/',       // 模板、样式、脚本、图片等资源对应的server上的路径
@@ -63,18 +67,27 @@ output: {
 			          use: "css-loader"
 			     })
         },
+//      {
+//      test: /\.(png|jpg|gif)$/,
+//      use: [
 //        {
-//              test:/\.(gif|png|jpg|woff|svg|ttf|eot)$/,//图片的处理
-//              use:[{
-//                  loader:'url-loader',
-//                  options: {
-//                          limit: 8192,    // 小于8k的图片自动转成base64格式，并且不会存在实体图片
-//                          outputPath: 'images/'   // 图片打包后存放的目录
-//                      }
-//                  
-//           }]
-//                  
-//       },
+//          loader: 'file-loader',
+//          options: {}
+//        }
+//      ]
+//    },
+          {
+                test:/\.(gif|png|jpg|woff|svg|ttf|eot)$/,//图片的处理
+                use:[{
+                    loader:'url-loader',
+                    options: {
+                            limit: 8192,    // 小于8k的图片自动转成base64格式，并且不会存在实体图片
+                            outputPath: 'images/'   // 图片打包后存放的目录
+                        }
+                    
+             }]
+                    
+         },
 
         {
 				  test: /\.(html)$/,
@@ -84,19 +97,19 @@ output: {
 				      attrs: [':data-src',':src']
 				    }
 				  }
-				},
-        {
-          test: /\.(png|svg|jpg|gif)$/,
-          use: [
-            'file-loader'
-          ]
-        },
-        {
-          test: /\.(woff|woff2|eot|ttf|otf)$/,
-          use: [
-            'file-loader'
-          ]
-        }
+				}
+//      {
+//        test: /\.(png|svg|jpg|gif)$/,
+//        use: [
+//          'file-loader'
+//        ]
+//      },
+//      {
+//        test: /\.(woff|woff2|eot|ttf|otf)$/,
+//        use: [
+//          'file-loader'
+//        ]
+//      }
       ]
    },
 
@@ -104,6 +117,8 @@ output: {
  
 		new cleanWebpackPlugin(['dist']),
 		//压缩css
+		new webpack.HotModuleReplacementPlugin(),
+		
 		new OptimizeCSSPlugin({
 			cssProcessorOptions: {
 				safe: true
@@ -120,7 +135,18 @@ output: {
 			}
 		}),
      new ExtractTextPlugin('css/[name].css'),
- ] 
+ ],
+ 	devServer: {
+		contentBase: path.join(__dirname, "src"),
+//		publicPath:'/',
+		host: "localhost",
+		port: "8080",
+	//	overlay: true, // 浏览器页面上显示错误
+		// open: true, // 开启浏览器
+		// stats: "errors-only", //stats: "errors-only"表示只打印错误：
+		hot: true // 开启热更新
+	},
+
 };
 
 Object.keys(entries).forEach(function(name) {
